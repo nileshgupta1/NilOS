@@ -9,8 +9,37 @@ void printf(char* str)
 {
     static uint16_t* VideoMemory = (uint16_t*)0xb8000; // This is declared as unsigned short so that each element takes 2 bytes of space because high byte is for color and low byte for aur character. We only need to change the low byte
 
-    for(int i = 0; str[i] != '\0'; ++i)
-        VideoMemory[i] = (VideoMemory[i] & 0xFF00) | str[i]; // Only changes the low byte. VideoMemory[i] changes from [(high byte)(low byte)] ---> [(high byte), (str[i])] (2bytes).
+    static uint8_t x = 0, y = 0;    //Cursor Location
+    //Screen is 80 wide x 25 high (characters)
+    for(int i = 0; str[i] != '\0'; ++i)     //Increment through each char as long as its not the end symbol
+    {
+        switch (str[i]) {
+
+            case '\n':      //If newline
+                y++;        //New Line
+                x = 0;      //Reset Width pos
+                break;
+            default:        //(This also stops the \n from being printed)
+                VideoMemory[80*y+x] = (VideoMemory[80*y+x] & 0xFF00) | str[i];
+                x++;
+        }
+        
+        if(x >= 80){    //If at edge of screen
+            y++;        //New Line
+            x = 0;      //Reset Width pos
+        }
+
+        if(y >= 25){  //If at bottom of screen then clear and restart
+            for (int y = 0; y < 25; ++y) {
+                for (int x = 0; x < 80; ++x) {
+                    //Set everything to a space char
+                    VideoMemory[80*y+x] = (VideoMemory[80*y+x] & 0xFF00) | ' ';
+                }
+            }
+            x = 0;
+            y = 0;
+        }
+    }
 }
 
 typedef void (*constructor)();
@@ -23,7 +52,8 @@ extern "C" void callConstructors()
 }
 
 extern "C" void kernelMain(void* multiboot_structure, unsigned int magicnumber){  // extern "C" tells g++ not to change name of the function when writing in the .o file
-    printf("NilOS kernel");
+    printf("NilOS kernel\n");
+    printf("Kernel Booted \n");
     GlobalDescriptorTable gdt;
     while(1); // There's no meaning of returning from this function because there's no meaning of kernel finish executing
 }

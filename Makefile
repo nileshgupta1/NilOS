@@ -4,7 +4,7 @@ GCCPARAMS = -m32 -fno-use-cxa-atexit -nostdlib -fno-builtin -fno-rtti -fno-excep
 ASPARAMS = --32
 LDPARAMS = -melf_i386
 
-objects = loader.o gdt.o kernel.o
+objects = loader.o gdt.o port.o kernel.o
 
 # Syntax of a Makefile
 # target: prerequisites
@@ -38,8 +38,10 @@ nilos.iso: nilos.bin
 	echo '}'                                 >> iso/boot/grub/grub.cfg
 	grub-mkrescue --output=$@ iso
 	rm -rf iso
-	rm *.o
-	rm *.bin
 
 run: nilos.iso
 	qemu-system-i386 -cdrom $<
+
+.PHONY: clean
+clean:
+	rm -f $(objects) nilos.bin nilos.iso
