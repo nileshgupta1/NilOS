@@ -1,5 +1,6 @@
 #include "types.h"
 #include "gdt.h"
+#include "interrupts.h"
 
 // Since we dont have any OS, it cant perform dynamic linking to the standard library and thus, we cant use functions like printf.
 // So, to print we need to put out content on a specific memory location in the RAM 0xb8000. The graphics card automatically prints the contents on screen. We can also set the color information.
@@ -22,6 +23,7 @@ void printf(char* str)
             default:        //(This also stops the \n from being printed)
                 VideoMemory[80*y+x] = (VideoMemory[80*y+x] & 0xFF00) | str[i];
                 x++;
+                break;
         }
         
         if(x >= 80){    //If at edge of screen
@@ -30,8 +32,8 @@ void printf(char* str)
         }
 
         if(y >= 25){  //If at bottom of screen then clear and restart
-            for (int y = 0; y < 25; ++y) {
-                for (int x = 0; x < 80; ++x) {
+            for (y = 0; y < 25; ++y) {
+                for (x = 0; x < 80; ++x) {
                     //Set everything to a space char
                     VideoMemory[80*y+x] = (VideoMemory[80*y+x] & 0xFF00) | ' ';
                 }
@@ -51,9 +53,20 @@ extern "C" void callConstructors()
         (*i)();
 }
 
-extern "C" void kernelMain(void* multiboot_structure, unsigned int magicnumber){  // extern "C" tells g++ not to change name of the function when writing in the .o file
-    printf("NilOS kernel\n");
-    printf("Kernel Booted \n");
-    GlobalDescriptorTable gdt;
+// extern "C" tells g++ not to change name of the function when writing in the .o file. 
+// Run 'nm file_name.o' to see the symbols to which the compiler has changed name of the functions
+// Since we are using extern "C", we can directly write '.extern kernelMain' in our loader.s file and not something like '.extern _Zk13kernelMainEfgh'
+extern "C" void kernelMain(const void* multiboot_structure, uint32_t /*magicnumber*/){
+
+    printf("setting up GDT\n");
+    GlobalDescriptorTable gdt; // GDT setup
+    printf("GDT setup\n");
+
+    printf("setting up interrupts\n");
+    InterruptManager interrupts(0x20, &gdt); // IST and PIC setup. (0x20 is the hardware interrupt offset)
+    printf("Interrupts setup\n");
+    // setup hardware
+    interrupts.Activate();
+
     while(1); // There's no meaning of returning from this function because there's no meaning of kernel finish executing
 }

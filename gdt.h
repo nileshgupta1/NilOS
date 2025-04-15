@@ -39,7 +39,7 @@ class GlobalDescriptorTable{
             uint16_t base_lo;       //Low Bytes of the pointer
             uint8_t base_hi;        //One byte extension for the pointer
             uint8_t type;           //Excess Bytes
-            uint8_t flags_limit_hi;
+            uint8_t limit_hi;
             uint8_t base_vhi;
 
         public:
