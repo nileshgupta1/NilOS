@@ -1,6 +1,7 @@
 #include "types.h"
 #include "gdt.h"
 #include "interrupts.h"
+#include "keyboard.h"
 
 // Since we dont have any OS, it cant perform dynamic linking to the standard library and thus, we cant use functions like printf.
 // So, to print we need to put out content on a specific memory location in the RAM 0xb8000. The graphics card automatically prints the contents on screen. We can also set the color information.
@@ -66,6 +67,7 @@ extern "C" void kernelMain(const void* multiboot_structure, uint32_t /*magicnumb
     InterruptManager interrupts(0x20, &gdt); // IST and PIC setup. (0x20 is the hardware interrupt offset)
     printf("Interrupts setup\n");
     // setup hardware
+    KeyboardDriver keyboard(&interrupts);
     interrupts.Activate();
 
     while(1); // There's no meaning of returning from this function because there's no meaning of kernel finish executing

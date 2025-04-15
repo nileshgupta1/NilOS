@@ -8,7 +8,41 @@
 
 void printf(char* str);
 
+
+
+
+
+
+InterruptHandler::InterruptHandler(uint8_t interruptNumber, InterruptManager* interruptManager)
+{
+    this->interruptNumber = interruptNumber;
+    this->interruptManager = interruptManager;
+    interruptManager->handlers[interruptNumber] = this;
+}
+InterruptHandler::~InterruptHandler()
+{
+    if(interruptManager->handlers[interruptNumber] == this)
+    {
+        interruptManager->handlers[interruptNumber] = 0;
+    }
+
+}
+uint32_t InterruptHandler::HandleInterrupt(uint32_t esp)
+{
+    return esp;
+}
+
+
+
+
+
+
+
+
+
 InterruptManager::GateDescriptor InterruptManager::interruptDescriptorTable[256];
+
+InterruptManager* InterruptManager::ActiveInterruptManager = 0;
 
 
 
@@ -40,10 +74,10 @@ InterruptManager::InterruptManager(uint16_t hardwareInterruptOffset, GlobalDescr
     for(uint8_t i = 255; i > 0; --i)
     {
         SetInterruptDescriptorTableEntry(i, CodeSegment, &InterruptIgnore, 0, IDT_INTERRUPT_GATE);
-        //handlers[i] = 0;
+        handlers[i] = 0;
     }
     SetInterruptDescriptorTableEntry(0, CodeSegment, &InterruptIgnore, 0, IDT_INTERRUPT_GATE);
-    //handlers[0] = 0;
+    handlers[0] = 0;
 
     SetInterruptDescriptorTableEntry(0x00, CodeSegment, &HandleException0x00, 0, IDT_INTERRUPT_GATE); 
     SetInterruptDescriptorTableEntry(0x01, CodeSegment, &HandleException0x01, 0, IDT_INTERRUPT_GATE);
@@ -124,34 +158,61 @@ uint16_t InterruptManager::HardwareInterruptOffset()
 
 void InterruptManager::Activate()
 {
-    //if(ActiveInterruptManager == 0)
+    if(ActiveInterruptManager != 0)
     {
-        //ActiveInterruptManager = this;
-        asm("sti"); //sti = start/enable interrupts
+        ActiveInterruptManager->Deactivate();
     }
+    ActiveInterruptManager = this;
+    asm("sti"); // sti = start/enable interrupts
 }
 
 void InterruptManager::Deactivate()
 {
-    /*if(ActiveInterruptManager == this)
+    if(ActiveInterruptManager == this)
     {
         ActiveInterruptManager = 0;
-        */
-        //asm("cli");
-        /*
-    }*/
+        asm("cli");
+    }
 }
    
 
 // This function is called after the specific functions for interrupts such as HandleInterruptRequest0x01 is called in interruptstubs.s
 uint32_t InterruptManager::HandleInterrupt(uint8_t interrupt, uint32_t esp)
 {
-    char* foo = "INTERRUPT 0x00-------------------------------------";
-    char* hex = "0123456789ABCDEF";
+    if(ActiveInterruptManager != 0)
+    {
+        return ActiveInterruptManager->DoHandleInterrupt(interrupt, esp);
+    }
+    return esp;
+}
 
-    foo[12] = hex[(interrupt >> 4) & 0xF];
-    foo[13] = hex[interrupt & 0xF];
-    printf(foo);
+uint32_t InterruptManager::DoHandleInterrupt(uint8_t interrupt, uint32_t esp)
+{
+    if(handlers[interrupt] != 0) // If handler is present
+    {
+        esp = handlers[interrupt]->HandleInterrupt(esp);
+    }
+    else if(interrupt != 0x20)  // If handler is not present
+    {
+        // Print only if interrupt is not a timer interrupt(Ox20)
+        char* foo = "UNHANDLED INTERRUPT 0x00\n";
+        char* hex = "0123456789ABCDEF";
+
+        foo[22] = hex[(interrupt >> 4) & 0xF];
+        foo[23] = hex[interrupt & 0xF];
+        printf(foo);
+    }
+
+    // Hardware interrupts must be acknowledged, so, send return answer to PIC (only if we receive remapped hardware interrupts which are between 0x20 and 0x30) that we are done handling the interrupt
+    if(hardwareInterruptOffset <= interrupt && interrupt < hardwareInterruptOffset+16)
+    {
+        programmableInterruptControllerMasterCommandPort.Write(0x20);
+        if(hardwareInterruptOffset + 8 <= interrupt)
+        {
+            // If received interrupt is from the slave PIC or is between 0x28 and 0x30
+            programmableInterruptControllerSlaveCommandPort.Write(0x20);
+        }
+    }
 
     return esp;
 }
