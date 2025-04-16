@@ -76,7 +76,7 @@ uint32_t KeyboardDriver::HandleInterrupt(uint32_t esp)
             case 0x32: printf("m"); break;
             case 0x33: printf(","); break;
             case 0x34: printf("."); break;
-            case 0x35: printf("-"); break;
+            case 0x35: printf("/"); break;
 
             case 0x1C: printf("\n"); break;
             case 0x39: printf(" "); break;

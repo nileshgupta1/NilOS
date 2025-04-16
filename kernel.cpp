@@ -2,6 +2,7 @@
 #include "gdt.h"
 #include "interrupts.h"
 #include "keyboard.h"
+#include "mouse.h"
 
 // Since we dont have any OS, it cant perform dynamic linking to the standard library and thus, we cant use functions like printf.
 // So, to print we need to put out content on a specific memory location in the RAM 0xb8000. The graphics card automatically prints the contents on screen. We can also set the color information.
@@ -9,7 +10,10 @@
 
 void printf(char* str)
 {
-    static uint16_t* VideoMemory = (uint16_t*)0xb8000; // This is declared as unsigned short so that each element takes 2 bytes of space because high byte is for color and low byte for aur character. We only need to change the low byte
+    // The video memory is partitioned into 16-bit (2-bytes) integers [ fg,bg ][ char ] | [ fg,bg ][ char ] | [ fg,bg ][ char ]
+    // First byte is for spefying colors and second byte is for the character to be printed
+    // The first 4-bits of the first byte specify the foreground color and the last 4 bits specify the background color
+    static uint16_t* VideoMemory = (uint16_t*)0xb8000; // This is declared to take 2 bytes of space because high byte is for color and low byte for aur character. We only need to change the low byte
 
     static uint8_t x = 0, y = 0;    //Cursor Location
     //Screen is 80 wide x 25 high (characters)
@@ -68,6 +72,7 @@ extern "C" void kernelMain(const void* multiboot_structure, uint32_t /*magicnumb
     printf("Interrupts setup\n");
     // setup hardware
     KeyboardDriver keyboard(&interrupts);
+    MouseDriver mouse(&interrupts);
     interrupts.Activate();
 
     while(1); // There's no meaning of returning from this function because there's no meaning of kernel finish executing
