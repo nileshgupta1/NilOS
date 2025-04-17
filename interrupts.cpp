@@ -7,7 +7,7 @@
 #include "interrupts.h"
 
 void printf(char* str);
-
+void printfHex(uint8_t);
 
 
 
@@ -195,12 +195,8 @@ uint32_t InterruptManager::DoHandleInterrupt(uint8_t interrupt, uint32_t esp)
     else if(interrupt != 0x20)  // If handler is not present
     {
         // Print only if interrupt is not a timer interrupt(Ox20)
-        char* foo = "UNHANDLED INTERRUPT 0x00\n";
-        char* hex = "0123456789ABCDEF";
-
-        foo[22] = hex[(interrupt >> 4) & 0xF];
-        foo[23] = hex[interrupt & 0xF];
-        printf(foo);
+        printf("UNHANDLED INTERRUPT 0x");
+        printfHex(interrupt);
     }
 
     // Hardware interrupts must be acknowledged, so, send return answer to PIC (only if we receive remapped hardware interrupts which are between 0x20 and 0x30) that we are done handling the interrupt
