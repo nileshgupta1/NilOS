@@ -1,4 +1,6 @@
-#include "gdt.h"
+#include <gdt.h>
+using namespace nilos;
+using namespace nilos::common;
 
 
 GlobalDescriptorTable::GlobalDescriptorTable()

@@ -1,4 +1,7 @@
-#include "port.h"
+#include <hardwarecommunication/port.h>
+
+using namespace nilos::common;
+using namespace nilos::hardwarecommunication;
 
 Port::Port(uint16_t portnumber){
     this->portnumber = portnumber;

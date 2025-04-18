@@ -1,5 +1,9 @@
 
-#include "keyboard.h"
+#include <drivers/keyboard.h>
+
+using namespace nilos::common;
+using namespace nilos::drivers;
+using namespace nilos::hardwarecommunication;
 
 
 

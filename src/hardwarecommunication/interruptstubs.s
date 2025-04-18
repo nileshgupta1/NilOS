@@ -4,18 +4,18 @@
 .section .text
 
 # run 'nm interrupts.o' to see the symbols for the functions(this is because we haven't used extern "C"). We can now jump to the functions from the assembly files
-.extern _ZN16InterruptManager15HandleInterruptEhj  # symbol for InterruptManager::HandleInterrupt function
+.extern _ZN5nilos21hardwarecommunication16InterruptManager15HandleInterruptEhj  # symbol for nilos::hardwarecommunication::InterruptManager::HandleInterrupt function
 
 .macro HandleException num
-.global _ZN16InterruptManager19HandleException\num\()Ev
-_ZN16InterruptManager19HandleException\num\()Ev:
+.global _ZN5nilos21hardwarecommunication16InterruptManager19HandleException\num\()Ev
+_ZN5nilos21hardwarecommunication16InterruptManager19HandleException\num\()Ev:
     movb $\num, (interruptnumber)
     jmp int_bottom
 .endm
 
 .macro HandleInterruptRequest num
-.global _ZN16InterruptManager26HandleInterruptRequest\num\()Ev  # symbol for InterruptManager::HandleInterruptRequest0x00 or 0x11 called below
-_ZN16InterruptManager26HandleInterruptRequest\num\()Ev:
+.global _ZN5nilos21hardwarecommunication16InterruptManager26HandleInterruptRequest\num\()Ev  # symbol for nilos::hardwarecommunication::InterruptManager::HandleInterruptRequest0x00 or 0x11 called below
+_ZN5nilos21hardwarecommunication16InterruptManager26HandleInterruptRequest\num\()Ev:
     movb $\num + IRQ_BASE, (interruptnumber)
     jmp int_bottom
 .endm
@@ -71,7 +71,7 @@ int_bottom:
 
     pushl %esp
     push (interruptnumber)
-    call _ZN16InterruptManager15HandleInterruptEhj
+    call _ZN5nilos21hardwarecommunication16InterruptManager15HandleInterruptEhj
     add %esp, 6
     mov %eax, %esp
 
@@ -82,8 +82,8 @@ int_bottom:
     pop %ds
     popa
 
-.global _ZN16InterruptManager15InterruptIgnoreEv
-_ZN16InterruptManager15InterruptIgnoreEv:
+.global _ZN5nilos21hardwarecommunication16InterruptManager15InterruptIgnoreEv
+_ZN5nilos21hardwarecommunication16InterruptManager15InterruptIgnoreEv:
 
     iret
 

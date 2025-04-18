@@ -1,5 +1,10 @@
 
-#include "mouse.h"
+#include <drivers/mouse.h>
+
+
+using namespace nilos::common;
+using namespace nilos::drivers;
+using namespace nilos::hardwarecommunication;
 
 
 MouseEventHandler::MouseEventHandler()

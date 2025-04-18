@@ -1,10 +1,18 @@
 
-
-GCCPARAMS = -m32 -fno-use-cxa-atexit -nostdlib -fno-builtin -fno-rtti -fno-exceptions -fno-leading-underscore -Wno-write-strings # tell the compiler that there is no OS or the glibc standard library to which it can link or use extra functionalities, exceptions, etc
+# using -Iinclude tells the compiler to look for include files in the include directory and therefore we use #include <common/types.h> instead of #include "path/to/types.h"
+GCCPARAMS = -m32  -Iinclude -fno-use-cxa-atexit -nostdlib -fno-builtin -fno-rtti -fno-exceptions -fno-leading-underscore -Wno-write-strings # tell the compiler that there is no OS or the glibc standard library to which it can link or use extra functionalities, exceptions, etc
 ASPARAMS = --32
 LDPARAMS = -melf_i386
 
-objects = loader.o gdt.o driver.o port.o interruptstubs.o interrupts.o keyboard.o mouse.o kernel.o
+objects = obj/loader.o \
+		  obj/gdt.o \
+		  obj/drivers/driver.o \
+		  obj/hardwarecommunication/port.o \
+		  obj/hardwarecommunication/interruptstubs.o \
+		  obj/hardwarecommunication/interrupts.o \
+		  obj/drivers/keyboard.o \
+		  obj/drivers/mouse.o \
+		  obj/kernel.o
 
 # Syntax of a Makefile
 # target: prerequisites
@@ -18,10 +26,12 @@ objects = loader.o gdt.o driver.o port.o interruptstubs.o interrupts.o keyboard.
 
 
 
-%.o: %.cpp
+obj/%.o: src/%.cpp
+	mkdir -p $(@D)
 	gcc $(GCCPARAMS) -c -o $@ $<
 
-%.o: %.s
+obj/%.o: src/%.s
+	mkdir -p $(@D)
 	as $(ASPARAMS) -o $@ $<
 
 nilos.bin: linker.ld $(objects)
@@ -44,4 +54,4 @@ run: nilos.iso
 
 .PHONY: clean
 clean:
-	rm -f $(objects) nilos.bin nilos.iso
+	rm -rf obj nilos.bin nilos.iso

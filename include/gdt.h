@@ -1,8 +1,8 @@
 // 'include guards' prevent the header file from being included multiple times in a single translation unit
-#ifndef __GDT_H
-#define __GDT_H
+#ifndef __NILOS__GDT_H
+#define __NILOS__GDT_H
 
-#include "types.h"
+#include <common/types.h>
  
 
 //  Global Descriptor Table (GDT) segment structure:
@@ -29,38 +29,43 @@
 //  +------------+----------------+--------------+--------------+--------------+--------------+-------------+--------------+
 //               7                6              5              4              3               2             1             0
 
-class GlobalDescriptorTable{
 
-    public:
-        class SegmentDescriptor{
+namespace nilos
+{
 
-        private:
-            uint16_t limit_lo; 
-            uint16_t base_lo;       //Low Bytes of the pointer
-            uint8_t base_hi;        //One byte extension for the pointer
-            uint8_t type;           //Excess Bytes
-            uint8_t limit_hi;
-            uint8_t base_vhi;
-
+    class GlobalDescriptorTable{
+    
         public:
-            SegmentDescriptor(uint32_t base, uint32_t limit, uint8_t type); //Constructor
-            //Return Pointer and the limit
-            uint32_t Base();
-            uint32_t Limit();
-        } __attribute__((packed)); //Prevent Compiler from moving objects as it needs to be byte perfect
-
-    private:
-        SegmentDescriptor nullSegmentSelector;
-        SegmentDescriptor unusedSegmentSelector;
-        SegmentDescriptor codeSegmentSelector;
-        SegmentDescriptor dataSegmentSelector; 
-
-    public:
-        GlobalDescriptorTable(); //Constructor
-        ~GlobalDescriptorTable(); //Destructor
-        
-        uint16_t CodeSegmentSelector(); //Return offset of the code segment descriptor
-        uint16_t DataSegmentSelector();
-};
+            class SegmentDescriptor{
+    
+            private:
+                nilos::common::uint16_t limit_lo; 
+                nilos::common::uint16_t base_lo;       //Low Bytes of the pointer
+                nilos::common::uint8_t base_hi;        //One byte extension for the pointer
+                nilos::common::uint8_t type;           //Excess Bytes
+                nilos::common::uint8_t limit_hi;
+                nilos::common::uint8_t base_vhi;
+    
+            public:
+                SegmentDescriptor(nilos::common::uint32_t base, nilos::common::uint32_t limit, nilos::common::uint8_t type); //Constructor
+                //Return Pointer and the limit
+                nilos::common::uint32_t Base();
+                nilos::common::uint32_t Limit();
+            } __attribute__((packed)); //Prevent Compiler from moving objects as it needs to be byte perfect
+    
+        private:
+            SegmentDescriptor nullSegmentSelector;
+            SegmentDescriptor unusedSegmentSelector;
+            SegmentDescriptor codeSegmentSelector;
+            SegmentDescriptor dataSegmentSelector; 
+    
+        public:
+            GlobalDescriptorTable(); //Constructor
+            ~GlobalDescriptorTable(); //Destructor
+            
+            nilos::common::uint16_t CodeSegmentSelector(); //Return offset of the code segment descriptor
+            nilos::common::uint16_t DataSegmentSelector();
+    };
+}
  
 #endif

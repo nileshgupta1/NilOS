@@ -4,7 +4,9 @@
 // 3- Send commands to the PICs through ICW to tell them to send interrupts to the CPU cause everything is set.
 // 4- Tell the CPU to use the IDT asm volatile("lidt %0" : : "m" (idt_pointer));
 
-#include "interrupts.h"
+#include <hardwarecommunication/interrupts.h>
+using namespace nilos::common;
+using namespace nilos::hardwarecommunication;
 
 void printf(char* str);
 void printfHex(uint8_t);
