@@ -10,6 +10,7 @@ objects = obj/loader.o \
 		  obj/hardwarecommunication/port.o \
 		  obj/hardwarecommunication/interruptstubs.o \
 		  obj/hardwarecommunication/interrupts.o \
+		  obj/hardwarecommunication/pci.o \
 		  obj/drivers/keyboard.o \
 		  obj/drivers/mouse.o \
 		  obj/kernel.o
@@ -42,7 +43,7 @@ nilos.iso: nilos.bin
 	mkdir iso/boot
 	mkdir iso/boot/grub
 	cp $< iso/boot
-	echo 'menuentry "My Operating System" {' >> iso/boot/grub/grub.cfg
+	echo 'menuentry "NilOS" {' >> iso/boot/grub/grub.cfg
 	echo '	multiboot /boot/nilos.bin'    >> iso/boot/grub/grub.cfg
 	echo '	boot'                            >> iso/boot/grub/grub.cfg
 	echo '}'                                 >> iso/boot/grub/grub.cfg
@@ -54,4 +55,4 @@ run: nilos.iso
 
 .PHONY: clean
 clean:
-	rm -rf obj nilos.bin nilos.iso
+	rm -rf obj nilos.bin

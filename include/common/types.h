@@ -14,6 +14,8 @@ namespace nilos
         typedef unsigned int           uint32_t;
         typedef long long int           int64_t;
         typedef unsigned long long int uint64_t;
+
+        typedef const char*              string;
         // defining types ensures that all the data types have defined sizes which does not change with different compilers
         
     }
