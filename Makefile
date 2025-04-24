@@ -13,6 +13,7 @@ objects = obj/loader.o \
 		  obj/hardwarecommunication/pci.o \
 		  obj/drivers/keyboard.o \
 		  obj/drivers/mouse.o \
+		  obj/drivers/vga.o \
 		  obj/kernel.o
 
 # Syntax of a Makefile
@@ -52,6 +53,10 @@ nilos.iso: nilos.bin
 
 run: nilos.iso
 	qemu-system-i386 -cdrom $<
+
+# run: nilos.iso
+# 	(killall VirtualBox && sleep 1) || true
+# 	VirtualBox --startvm "NilOS" &
 
 .PHONY: clean
 clean:

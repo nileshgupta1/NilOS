@@ -149,9 +149,9 @@ BaseAddressRegister PeripheralComponentInterconnectController::GetBaseAddressReg
     if(result.type == MemoryMapping)
     {
         
+        result.prefetchable = ((bar_value >> 3) & 0x1) == 0x1;
         switch((bar_value >> 1) & 0x3)
         {
-            result.prefetchable = ((bar_value >> 3) & 0x1) == 0x1;
             case 0: // 32 Bit Mode
             case 1: // 20 Bit Mode
             case 2: // 64 Bit Mode
