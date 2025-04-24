@@ -170,13 +170,7 @@ extern "C" void kernelMain(const void* multiboot_structure, uint32_t /*magicnumb
     interrupts.Activate();
 
     vga.SetMode(320, 200, 8);
-    for(int32_t y = 0; y < 200; y++)
-    {
-        for(int32_t x = 0; x < 320; x++)
-        {
-            vga.PutPixel(x, y, 0x00, 0x00, 0xA8);
-        }
-    }
+    vga.FillRectangle(0,0,320,200,0x00,0x00,0xA8);
     
     while(1); // There's no meaning of returning from this function because there's no meaning of kernel finish executing
 }
