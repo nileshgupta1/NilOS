@@ -55,4 +55,4 @@ run: nilos.iso
 
 .PHONY: clean
 clean:
-	rm -rf obj nilos.bin
+	rm -rf obj nilos.bin nilos.iso
