@@ -40,9 +40,9 @@ namespace nilos
             
             virtual bool SupportsMode(common::uint32_t width, common::uint32_t height, common::uint32_t colordepth);
             virtual bool SetMode(common::uint32_t width, common::uint32_t height, common::uint32_t colordepth);
-            virtual void PutPixel(common::uint32_t x, common::uint32_t y,  common::uint8_t r, common::uint8_t g, common::uint8_t b);
+            virtual void PutPixel(common::int32_t x, common::int32_t y,  common::uint8_t r, common::uint8_t g, common::uint8_t b);
             // Select index of color to put on the pixel from the  table of 256 color entries (because we are using 8 bit color depth)
-            virtual void PutPixel(common::uint32_t x, common::uint32_t y, common::uint8_t colorIndex);
+            virtual void PutPixel(common::int32_t x, common::int32_t y, common::uint8_t colorIndex);
 
             virtual void FillRectangle(common::uint32_t x, common::uint32_t y, common::uint32_t w, common::uint32_t h,   common::uint8_t r, common::uint8_t g, common::uint8_t b);
         };

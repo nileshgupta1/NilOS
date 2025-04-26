@@ -6,11 +6,18 @@
 #include <drivers/keyboard.h>
 #include <drivers/mouse.h>
 #include <drivers/vga.h>
+#include <gui/desktop.h>
+#include <gui/window.h>
+
+
+// #define GRAPHICSMODE // Uncomment to activate VGA graphics mode
+
 
 using namespace nilos;
 using namespace nilos::common;
 using namespace nilos::drivers;
 using namespace nilos::hardwarecommunication;
+using namespace nilos::gui;
 
 // Since we dont have any OS, it cant perform dynamic linking to the standard library and thus, we cant use functions like printf.
 // So, to print we need to put out content on a specific memory location in the RAM 0xb8000. The graphics card automatically prints the contents on screen. We can also set the color information.
@@ -86,19 +93,25 @@ public:
     
     MouseToConsole()
     {
-    }
-    
-    virtual void OnActivate()
-    {
         uint16_t* VideoMemory = (uint16_t*)0xb8000;
         x = 40;
         y = 12;
-        // Flip the foregroung and background colors of the character so that it looks like our cursor is present at that position
-        // Interchanging foreground and background colors by swapping the first 4 bits and second 4 bits, keeping last 8 bits same
         VideoMemory[80*y+x] = (VideoMemory[80*y+x] & 0x0F00) << 4
                             | (VideoMemory[80*y+x] & 0xF000) >> 4
-                            | (VideoMemory[80*y+x] & 0x00FF);        
+                            | (VideoMemory[80*y+x] & 0x00FF);  
     }
+    
+    // virtual void OnActivate()
+    // {
+    //     uint16_t* VideoMemory = (uint16_t*)0xb8000;
+    //     x = 40;
+    //     y = 12;
+    //     // Flip the foregroung and background colors of the character so that it looks like our cursor is present at that position
+    //     // Interchanging foreground and background colors by swapping the first 4 bits and second 4 bits, keeping last 8 bits same
+    //     VideoMemory[80*y+x] = (VideoMemory[80*y+x] & 0x0F00) << 4
+    //                         | (VideoMemory[80*y+x] & 0xF000) >> 4
+    //                         | (VideoMemory[80*y+x] & 0x00FF);        
+    // }
     
     virtual void OnMouseMove(int xoffset, int yoffset)
     {
@@ -148,14 +161,28 @@ extern "C" void kernelMain(const void* multiboot_structure, uint32_t /*magicnumb
     printf("Interrupts setup\n");
 
     printf("Initializing Hardware, Stage 1\n");
+
+    #ifdef GRAPHICSMODE
+        Desktop desktop(320,200, 0x00,0x00,0xA8);
+    #endif
+    
     DriverManager drvManager;
 
-        PrintfKeyboardEventHandler kbhandler;
-        KeyboardDriver keyboard(&interrupts, &kbhandler);
+        #ifdef GRAPHICSMODE
+            KeyboardDriver keyboard(&interrupts, &desktop);
+        #else
+            PrintfKeyboardEventHandler kbhandler;
+            KeyboardDriver keyboard(&interrupts, &kbhandler);
+        #endif
         drvManager.AddDriver(&keyboard);
 
-        MouseToConsole mousehandler;
-        MouseDriver mouse(&interrupts, &mousehandler);
+
+        #ifdef GRAPHICSMODE
+            MouseDriver mouse(&interrupts, &desktop);
+        #else
+            MouseToConsole mousehandler;
+            MouseDriver mouse(&interrupts, &mousehandler);
+        #endif
         drvManager.AddDriver(&mouse);
         
         PeripheralComponentInterconnectController PCIController;
@@ -167,10 +194,22 @@ extern "C" void kernelMain(const void* multiboot_structure, uint32_t /*magicnumb
         drvManager.ActivateAll();
 
     printf("Initializing Hardware, Stage 3\n");
+    
+    #ifdef GRAPHICSMODE
+        vga.SetMode(320,200,8);
+        Window win1(&desktop, 10,10,20,20, 0xA8,0x00,0x00);
+        desktop.AddChild(&win1);
+        Window win2(&desktop, 40,15,30,30, 0x00,0xA8,0x00);
+        desktop.AddChild(&win2);
+    #endif
+
+
     interrupts.Activate();
 
-    vga.SetMode(320, 200, 8);
-    vga.FillRectangle(0,0,320,200,0x00,0x00,0xA8);
-    
-    while(1); // There's no meaning of returning from this function because there's no meaning of kernel finish executing
+    while(1)
+    {
+        #ifdef GRAPHICSMODE
+            desktop.Draw(&vga);
+        #endif
+    }
 }
