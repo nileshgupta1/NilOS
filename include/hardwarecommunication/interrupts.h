@@ -2,6 +2,7 @@
 #define __NILOS__HARDWARECOMMUNICATION__INTERRUPTS_H
 
 #include <gdt.h>
+#include <multitasking.h>
 #include <common/types.h>
 #include <hardwarecommunication/port.h>
 
@@ -28,6 +29,7 @@ namespace nilos
         
             static InterruptManager* ActiveInterruptManager; // Used to make sure that there is only one active interrupt manager at a time
             InterruptHandler* handlers[256]; // Store handlers for all the interrupts
+            TaskManager* taskManager;
         
             //blueprint of the IDT
             struct GateDescriptor{
@@ -109,7 +111,7 @@ namespace nilos
             Port8BitSlow programmableInterruptControllerSlaveDataPort;
         
         public:
-            InterruptManager(nilos::common::uint16_t hardwareInterruptOffset, nilos::GlobalDescriptorTable* globalDescriptorTable);
+            InterruptManager(nilos::common::uint16_t hardwareInterruptOffset, nilos::GlobalDescriptorTable* globalDescriptorTable, nilos::TaskManager* taskManager);
             ~InterruptManager();
         
             nilos::common::uint16_t HardwareInterruptOffset();

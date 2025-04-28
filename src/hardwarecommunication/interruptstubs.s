@@ -17,6 +17,7 @@ _ZN5nilos21hardwarecommunication16InterruptManager19HandleException\num\()Ev:
 .global _ZN5nilos21hardwarecommunication16InterruptManager26HandleInterruptRequest\num\()Ev  # symbol for nilos::hardwarecommunication::InterruptManager::HandleInterruptRequest0x00 or 0x11 called below
 _ZN5nilos21hardwarecommunication16InterruptManager26HandleInterruptRequest\num\()Ev:
     movb $\num + IRQ_BASE, (interruptnumber)
+    pushl $0 # for the error code which also need to be pushed
     jmp int_bottom
 .endm
 
@@ -61,26 +62,45 @@ HandleInterruptRequest 0x31
 
 int_bottom:
 
-    # pushing(saving) all the registers because interrupt handler might overwrite them and cause problbem for the process running in the userspace earlier
-    pusha
-    pushl %ds
-    pushl %es
-    pushl %fs
-    pushl %gs
+    # pushing(saving) all the registers because interrupt handler might overwrite them and cause problem for the process running in the userspace earlier
+    # pusha
+    # pushl %ds
+    # pushl %es
+    # pushl %fs
+    # pushl %gs
 
+    pushl %ebp
+    pushl %edi
+    pushl %esi
 
+    pushl %edx
+    pushl %ecx
+    pushl %ebx
+    pushl %eax
+
+    # call C++ handler (in the interrupts.cpp file)
     pushl %esp
     push (interruptnumber)
     call _ZN5nilos21hardwarecommunication16InterruptManager15HandleInterruptEhj
-    add %esp, 6
-    mov %eax, %esp
+    ; add %esp, 6
+    mov %eax, %esp # switch the stack
 
     # restoring all the registers
-    pop %gs
-    pop %fs
-    pop %es
-    pop %ds
-    popa
+    popl %eax
+    popl %ebx
+    popl %ecx
+    popl %edx
+
+    popl %esi
+    popl %edi
+    popl %ebp
+    # pop %gs
+    # pop %fs
+    # pop %es
+    # pop %ds
+    # popa
+
+    add $4, %esp
 
 .global _ZN5nilos21hardwarecommunication16InterruptManager15InterruptIgnoreEv
 _ZN5nilos21hardwarecommunication16InterruptManager15InterruptIgnoreEv:

@@ -8,6 +8,7 @@
 #include <drivers/vga.h>
 #include <gui/desktop.h>
 #include <gui/window.h>
+#include <multitasking.h>
 
 
 // #define GRAPHICSMODE // Uncomment to activate VGA graphics mode
@@ -101,18 +102,6 @@ public:
                             | (VideoMemory[80*y+x] & 0x00FF);  
     }
     
-    // virtual void OnActivate()
-    // {
-    //     uint16_t* VideoMemory = (uint16_t*)0xb8000;
-    //     x = 40;
-    //     y = 12;
-    //     // Flip the foregroung and background colors of the character so that it looks like our cursor is present at that position
-    //     // Interchanging foreground and background colors by swapping the first 4 bits and second 4 bits, keeping last 8 bits same
-    //     VideoMemory[80*y+x] = (VideoMemory[80*y+x] & 0x0F00) << 4
-    //                         | (VideoMemory[80*y+x] & 0xF000) >> 4
-    //                         | (VideoMemory[80*y+x] & 0x00FF);        
-    // }
-    
     virtual void OnMouseMove(int xoffset, int yoffset)
     {
         static uint16_t* VideoMemory = (uint16_t*)0xb8000;
@@ -138,6 +127,26 @@ public:
     
 };
 
+
+
+
+
+void taskA()
+{
+    while(true)
+        printf("A");
+}
+void taskB()
+{
+    while(true)
+        printf("B");
+}
+
+
+
+
+
+
 typedef void (*constructor)();
 extern "C" constructor start_ctors;
 extern "C" constructor end_ctors;
@@ -156,8 +165,14 @@ extern "C" void kernelMain(const void* multiboot_structure, uint32_t /*magicnumb
     GlobalDescriptorTable gdt; // GDT setup
     printf("GDT setup\n");
 
+    TaskManager taskManager;
+    Task task1(&gdt, taskA);
+    Task task2(&gdt, taskB);
+    taskManager.AddTask(&task1);
+    taskManager.AddTask(&task2);
+
     printf("setting up interrupts\n");
-    InterruptManager interrupts(0x20, &gdt); // IST and PIC setup. (0x20 is the hardware interrupt offset)
+    InterruptManager interrupts(0x20, &gdt, &taskManager); // IST and PIC setup, (0x20 is the hardware interrupt offset), Scheduler of taskManager called in interrupt is a timer interrupt
     printf("Interrupts setup\n");
 
     printf("Initializing Hardware, Stage 1\n");
