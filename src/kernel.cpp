@@ -1,5 +1,6 @@
 #include <common/types.h>
 #include <gdt.h>
+#include <memorymanagement.h>
 #include <hardwarecommunication/interrupts.h>
 #include <hardwarecommunication/pci.h>
 #include <drivers/driver.h>
@@ -161,19 +162,42 @@ extern "C" void callConstructors()
 // Since we are using extern "C", we can directly write '.extern kernelMain' in our loader.s file and not something like '.extern _Zk13kernelMainEfgh'
 extern "C" void kernelMain(const void* multiboot_structure, uint32_t /*magicnumber*/){
 
-    printf("setting up GDT\n");
     GlobalDescriptorTable gdt; // GDT setup
-    printf("GDT setup\n");
+
+    // We can get to know about the available memory from BIOS through the multiboot structure provided by the bootloader to the kernel.
+    // The multiboot.h from GNU project provides us with the structure of the multiboot structure
+    // The multiboot_info struct contains an integer mem_upper (8 bytes from the start of the struct) which tells us the size of the RAM (in KiB).
+    uint32_t* memupper = (uint32_t*)(((size_t)multiboot_structure) + 8);
+    size_t heap = 10*1024*1024; //  address where heap starts
+    // MemoryMAnager constructor takes in parameters the address where the heap starts and the size of the heap
+    MemoryManager memoryManager(heap, (*memupper)*1024 - heap - 10*1024); // memupper is in KB so we multiply by 1024. Substract the address where heap starts heap size and also 10KB padding behind the heap
+
+    // printing the heap address and the address of the allocated memory
+    printf("heap: 0x");
+    printfHex((heap >> 24) & 0xFF);
+    printfHex((heap >> 16) & 0xFF);
+    printfHex((heap >> 8 ) & 0xFF);
+    printfHex((heap      ) & 0xFF);
+    // prints 0x00A00000 = 1,048,576B = 10*1024*1024, so heap starts at 10 megabytes
+    
+    void* allocated = memoryManager.malloc(1024);
+    printf("\nallocated: 0x");
+    printfHex(((size_t)allocated >> 24) & 0xFF);
+    printfHex(((size_t)allocated >> 16) & 0xFF);
+    printfHex(((size_t)allocated >> 8 ) & 0xFF);
+    printfHex(((size_t)allocated      ) & 0xFF);
+    printf("\n");
+    // prints 0x00A00010, so memory allocated at 10*1024*1024 + 16, so 16 bytes after the heap address
 
     TaskManager taskManager;
+    /*
     Task task1(&gdt, taskA);
     Task task2(&gdt, taskB);
     taskManager.AddTask(&task1);
     taskManager.AddTask(&task2);
+    */
 
-    printf("setting up interrupts\n");
     InterruptManager interrupts(0x20, &gdt, &taskManager); // IST and PIC setup, (0x20 is the hardware interrupt offset), Scheduler of taskManager called in interrupt is a timer interrupt
-    printf("Interrupts setup\n");
 
     printf("Initializing Hardware, Stage 1\n");
 

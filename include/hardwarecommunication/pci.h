@@ -2,6 +2,7 @@
 #define __NILOS__HARDWARECOMMUNICATION__PCI_H
 
 
+#include <memorymanagement.h>
 #include <hardwarecommunication/port.h>
 #include <drivers/driver.h>
 #include <common/types.h>
